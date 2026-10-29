@@ -1,2 +1,0 @@
-# jutta
-A timer app
