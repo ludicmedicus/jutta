@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import './my_button.dart';
+import './theme_notifier.dart';
+import 'package:provider/provider.dart';
 
 class MainTimer extends StatefulWidget {
   const MainTimer({super.key});
@@ -14,6 +16,7 @@ class _MainTimerState extends State<MainTimer>{
   int _userTime = 0;
   int _timeRemaining = 0;
   int _totalTimeSpent = 0;
+  int _completedSessions = 0;
   late Timer _myTimer;
   bool _isRunning = false;
 @override
@@ -25,6 +28,7 @@ class _MainTimerState extends State<MainTimer>{
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _userTime = prefs.getInt('userTime') ?? 0;
+      _completedSessions = prefs.getInt('completedSessions') ?? 0;
       _timeRemaining = _userTime * 60;
       _isRunning = false;
       _totalTimeSpent = prefs.getInt('totalTimeSpent') ?? 0;
@@ -43,6 +47,7 @@ _myTimer = Timer.periodic(Duration(seconds: 1), (timer){
       _totalTimeSpent++;
     }else{
       _isRunning = false;
+      _completedSessions++;
         _myTimer.cancel();
       }
     });
@@ -83,14 +88,21 @@ return '$h : $m : $s';
 
 
    Future<void> _navigateToPage(BuildContext context, String routeName) async {
-    
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      prefs.setInt('completedSessions', _completedSessions);
+    });
     final result = await Navigator.pushNamed(
       context,
       routeName);
    }
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Scaffold(
+      appBar: AppBar(title: Text("Settings")),
+      body: Center(
+        child:
+      Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text('Time remaining: ',
@@ -105,7 +117,7 @@ MyButton(onPressed:
         () {_navigateToPage(context, '/settings');}, icon: const Icon(Icons.settings)),
             
           ],
-        );
+        ),),);
   }
 
 }

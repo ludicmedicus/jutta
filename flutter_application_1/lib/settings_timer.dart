@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './my_button.dart';
+import './theme_provider.dart';
 
 class SettingsTimer extends StatefulWidget {
   const SettingsTimer({super.key});
@@ -11,10 +12,10 @@ class SettingsTimer extends StatefulWidget {
 
 class _SettingsTimerState extends State<SettingsTimer>{
   int _totalTimeSpent = 0;
-  int _currentStreak = 0;
-  int _maxStreak = 0;
+  int _completedSessions = 0;
   int _lastUserTime = 0;
-  bool _isDay = true;
+  bool _isLeftHanded = false;
+  bool _isKeyboard = false;
   //add color enums??
 @override
   void initState() {
@@ -26,32 +27,53 @@ class _SettingsTimerState extends State<SettingsTimer>{
     setState(() {
       _lastUserTime = prefs.getInt('lastUserTime') ?? 0;
       _totalTimeSpent = prefs.getInt('totalTimeSpent') ?? 0;
-      _isDay = prefs.getBool('isDay') ?? true;
+      _completedSessions = prefs.getInt('completedSessions') ?? 0;
+      _isLeftHanded = prefs.getBool('isLeftHanded') ?? false;
+      _isKeyboard = prefs.getBool('isKeyboard') ?? false;
     });
   }
   
-  Future<void> _clearTimer() async {
+  Future<void> _clearStats() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _lastUserTime = 0;
+      _totalTimeSpent = 0;
+      _completedSessions = 0;
       prefs.setInt('lastUserTime', _lastUserTime);
-    });
+      prefs.setInt('totalTimeSpent', _totalTimeSpent);
+      prefs.setInt('completedSessions', _completedSessions);
+    });//have option to clear all stats too
   }
-   Future<void> _setDayNight() async {
+   Future<void> _setLeftRight() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isDay = !_isDay;
-      prefs.setBool('isDay', _isDay);
+      _isLeftHanded = !_isLeftHanded;
+      prefs.setBool('isLeftHanded', _isLeftHanded);
     });
    }
-late var settingsButtons = {
-MyButton(onPressed: _clearTimer, icon: const Icon(Icons.cleaning_services_sharp)),
+   String formatTimer(int t){
+double hrs_raw = t/3600;
+int hrs_whole = t~/3600;
+double t_minSec = (hrs_raw - hrs_whole) * 3600;
+int min = (t_minSec/60).floor();
+int sec = (t_minSec%60).floor();
+
+String h = (hrs_whole).toString();
+String m = (min).toString();
+String s = (sec).toString();
+
+return '${(hrs_whole > 0) ? '$h hrs, ' : ""} ${(min > 0) ? '$m mins, ' : ""} $s secs';
+}
+late var settingsButtons = {//also include a left hand mode and a go back button?
+MyButton(onPressed: _clearStats, icon: const Icon(Icons.cleaning_services_sharp)),
 
   };
+
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
-      appBar: AppBar(title: Text("Timer Settings")),
+      appBar: AppBar(title: Text("Settings")),
       body: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -60,19 +82,19 @@ MyButton(onPressed: _clearTimer, icon: const Icon(Icons.cleaning_services_sharp)
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Last Time: $_lastUserTime',
+              'Statistics:',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              'Total Time: $_totalTimeSpent',
+              'Last Timer: $_lastUserTime ${(_lastUserTime > 1) ? "minutes" : "minute"}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              'Longest Streak: $_maxStreak',
+              'Total Time: ${formatTimer(_totalTimeSpent)}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              'Current Streak: $_currentStreak',
+              'Completed Sessions: $_completedSessions',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             
@@ -81,12 +103,14 @@ MyButton(onPressed: _clearTimer, icon: const Icon(Icons.cleaning_services_sharp)
         ),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             
             for (var b in settingsButtons) (b),
-            _isDay ? MyButton(onPressed: 
-        _setDayNight, icon: const Icon(Icons.mode_night)) : MyButton(onPressed: 
-        _setDayNight, icon: const Icon(Icons.sunny)),
+            
+        _isLeftHanded ? MyButton(onPressed: _setLeftRight, icon: const Icon(Icons.front_hand)): 
+        MyButton(onPressed: _setLeftRight, icon: const Icon(Icons.back_hand)),
+        ThemeProvider(),
             
           ],
         )

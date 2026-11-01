@@ -15,6 +15,8 @@ class _EditTimerState extends State<EditTimer>{
   int _userTime = 0;
   int _lastUserTime = 0;
   bool _isKeyboard = false;
+  bool _isLeftHanded = true;
+
 
 @override
   void initState() {
@@ -28,6 +30,7 @@ class _EditTimerState extends State<EditTimer>{
       _userTime = prefs.getInt('userTime') ?? 0;
       _lastUserTime = prefs.getInt('lastUserTime') ?? 0;
       _isKeyboard = prefs.getBool('isKeyboard') ?? false;
+      _isLeftHanded = prefs.getBool('isLeftHanded') ?? false;
     myController = TextEditingController(text: _userTime.toString());
     });
   }
@@ -84,8 +87,6 @@ class _EditTimerState extends State<EditTimer>{
     });
   }
 
-
-
   Future<void> _setTimeKB() async {
     final prefs = await SharedPreferences.getInstance();
     final text = myController.text;
@@ -95,7 +96,6 @@ class _EditTimerState extends State<EditTimer>{
        prefs.setInt('userTime', _userTime);
     });
   }
-
 
   Future<void> _navigateToPage(BuildContext context, String pathName) async {
     final prefs = await SharedPreferences.getInstance();
@@ -135,16 +135,21 @@ MyButton(onPressed:
 
   @override
   Widget build(BuildContext context) {
+    double hCenter = MediaQuery.sizeOf(context).width/2;
+    double vCenter = MediaQuery.sizeOf(context).height/2;
     return Scaffold(
       
-      appBar: AppBar(title: Text("Edit Timer")),
+      appBar: AppBar(title: Text("Edit")),
       body: Center(
         
         child: Row(
           
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            
+            Positioned(
+              top:hCenter,
+              left:0,
+              child:
             (!_isKeyboard) ? Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -157,6 +162,9 @@ for(var b in timerButtons) b,
             
           ],
         ) :
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
 Padding(
   padding: const EdgeInsets.all(8),
   child: Column(
@@ -176,26 +184,31 @@ Padding(
                    FilteringTextInputFormatter.digitsOnly,
         FilteringTextInputFormatter.deny(RegExp('^0+'))
                  ],
-          ),),],)), 
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            
-            (_isKeyboard) ? MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.touch_app)) : MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.dialpad)),
-            
-          ],
-        ),
+          ),),],)),],),), 
+          
             Container(
               child: (_userTime == 0) ? Container() : MyButton(onPressed: 
         () {_navigateToPage(context,'/timer');}, icon: const Icon(Icons.send))),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            
-             for (var b in settingsButtons) (b),
+            // (_isLeftHanded) ? Text("hi"): Text("hello"),
+            (_isKeyboard) ? MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.touch_app)) : MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.dialpad)),
             
           ],
         ),
+        
+            Padding(padding: const EdgeInsets.all(8),
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: <Widget>[
+            for (var b in settingsButtons) (b),
+          ],
+            ))
+            
+          
           ]),
       ),
 

@@ -1,24 +1,41 @@
 import 'package:flutter/material.dart';
+import './timer_themes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import './theme_notifier.dart';
 import './settings_timer.dart';
 import './my_button.dart';
 import './main_timer.dart';
 import './edit_timer.dart';
-void main() {
-  runApp(const MyApp());
-}
 
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+SharedPreferences.getInstance().then((prefs) {
+    var themeName = prefs.getString('themeMode')  ?? "light";
+    
+    runApp(
+      ChangeNotifierProvider<ThemeModeNotifier>(
+        create: (_) =>
+            ThemeModeNotifier(),
+        child: MyApp(),
+      ),
+    );
+  });
+}
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  
+    const MyApp({super.key});
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeModeNotifier>(context);
+    
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      initialRoute: '/',
+       debugShowCheckedModeBanner: false,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeNotifier.getThemeMode(),
+      initialRoute: '/edit',
       routes:{
         '/': (context) => const MyHomePage(),
         '/timer': (context) => const MainTimer(),
@@ -34,14 +51,14 @@ class MyHomePage extends StatelessWidget {
 
    Future<void> _navigateToTimer(BuildContext context) async {
     final result = await Navigator.pushNamed(
-      context,'/timer'
+      context,'/edit'
     );
    }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Timer Demo')),
-      body:  Center(child: MyButton(onPressed: () {_navigateToTimer(context);}, icon: const Icon(Icons.punch_clock)),),
+      appBar: AppBar(title: const Text('Timer')),
+      body:  Center(child: MyButton(onPressed: () {_navigateToTimer(context);}, icon: const Icon(Icons.access_time)),),
     );
   }
  }
