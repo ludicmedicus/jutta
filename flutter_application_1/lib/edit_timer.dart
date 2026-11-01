@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './my_button.dart';
+import './left_hand_notifier.dart';
+import 'package:provider/provider.dart';
 
 class EditTimer extends StatefulWidget {
   const EditTimer({super.key});
@@ -15,7 +17,6 @@ class _EditTimerState extends State<EditTimer>{
   int _userTime = 0;
   int _lastUserTime = 0;
   bool _isKeyboard = false;
-  bool _isLeftHanded = true;
 
 
 @override
@@ -30,7 +31,6 @@ class _EditTimerState extends State<EditTimer>{
       _userTime = prefs.getInt('userTime') ?? 0;
       _lastUserTime = prefs.getInt('lastUserTime') ?? 0;
       _isKeyboard = prefs.getBool('isKeyboard') ?? false;
-      _isLeftHanded = prefs.getBool('isLeftHanded') ?? false;
     myController = TextEditingController(text: _userTime.toString());
     });
   }
@@ -135,20 +135,28 @@ MyButton(onPressed:
 
   @override
   Widget build(BuildContext context) {
-    double hCenter = MediaQuery.sizeOf(context).width/2;
-    double vCenter = MediaQuery.sizeOf(context).height/2;
+    final leftHandNotifier = Provider.of<LeftHandNotifier>(context);
+    double widthBox = MediaQuery.sizeOf(context).width;
+    double heightBox = MediaQuery.sizeOf(context).height;
     return Scaffold(
       
-      appBar: AppBar(title: Text("Edit")),
-      body: Center(
-        
-        child: Row(
+      appBar: AppBar(title: Text("Edit"),
+      leading: IconButton(
+        icon: const Icon (Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),),
+      body:  
+      SizedBox(
+        height: heightBox,
+        width: widthBox,
+        child: Stack(
           
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Positioned(
-              top:hCenter,
-              left:0,
+              top:heightBox/3,
+              left:widthBox/2,
               child:
             (!_isKeyboard) ? Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -186,24 +194,20 @@ Padding(
                  ],
           ),),],)),],),), 
           
-            Container(
+            Positioned(
+              top:3*heightBox/7,
+              left:(leftHandNotifier.isLeft) ? 29*widthBox/64 : 35*widthBox/64,
               child: (_userTime == 0) ? Container() : MyButton(onPressed: 
         () {_navigateToPage(context,'/timer');}, icon: const Icon(Icons.send))),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            // (_isLeftHanded) ? Text("hi"): Text("hello"),
-            (_isKeyboard) ? MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.touch_app)) : MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.dialpad)),
-            
-          ],
-        ),
         
-            Padding(padding: const EdgeInsets.all(8),
+                    Positioned(
+              top:7*heightBox/10,
+              left:(leftHandNotifier.isLeft) ? widthBox/16 : 13*widthBox/16,
             child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[(_isKeyboard) ? MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.touch_app)) : MyButton(onPressed:_setInputSettings, icon: const Icon(Icons.dialpad)),
+          
             for (var b in settingsButtons) (b),
           ],
             ))

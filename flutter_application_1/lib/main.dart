@@ -3,6 +3,7 @@ import './timer_themes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import './theme_notifier.dart';
+import './left_hand_notifier.dart';
 import './settings_timer.dart';
 import './my_button.dart';
 import './main_timer.dart';
@@ -11,12 +12,16 @@ import './edit_timer.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 SharedPreferences.getInstance().then((prefs) {
-    var themeName = prefs.getString('themeMode')  ?? "light";
     
     runApp(
-      ChangeNotifierProvider<ThemeModeNotifier>(
+      MultiProvider(providers: [
+        ChangeNotifierProvider<ThemeModeNotifier>(
         create: (_) =>
-            ThemeModeNotifier(),
+            ThemeModeNotifier(),),
+        ChangeNotifierProvider<LeftHandNotifier>(
+        create: (_) =>
+            LeftHandNotifier(),),
+      ],
         child: MyApp(),
       ),
     );
@@ -57,7 +62,13 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Timer')),
+      appBar: AppBar(title: const Text('Timer'),
+      leading: IconButton(
+        icon: const Icon (Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),),
       body:  Center(child: MyButton(onPressed: () {_navigateToTimer(context);}, icon: const Icon(Icons.access_time)),),
     );
   }

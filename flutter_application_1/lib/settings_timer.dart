@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/left_hand_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './my_button.dart';
 import './theme_provider.dart';
+import './left_hand_provider.dart';
+import 'package:provider/provider.dart';
 
 class SettingsTimer extends StatefulWidget {
   const SettingsTimer({super.key});
@@ -14,7 +17,6 @@ class _SettingsTimerState extends State<SettingsTimer>{
   int _totalTimeSpent = 0;
   int _completedSessions = 0;
   int _lastUserTime = 0;
-  bool _isLeftHanded = false;
   bool _isKeyboard = false;
   //add color enums??
 @override
@@ -28,7 +30,6 @@ class _SettingsTimerState extends State<SettingsTimer>{
       _lastUserTime = prefs.getInt('lastUserTime') ?? 0;
       _totalTimeSpent = prefs.getInt('totalTimeSpent') ?? 0;
       _completedSessions = prefs.getInt('completedSessions') ?? 0;
-      _isLeftHanded = prefs.getBool('isLeftHanded') ?? false;
       _isKeyboard = prefs.getBool('isKeyboard') ?? false;
     });
   }
@@ -44,13 +45,6 @@ class _SettingsTimerState extends State<SettingsTimer>{
       prefs.setInt('completedSessions', _completedSessions);
     });//have option to clear all stats too
   }
-   Future<void> _setLeftRight() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isLeftHanded = !_isLeftHanded;
-      prefs.setBool('isLeftHanded', _isLeftHanded);
-    });
-   }
    String formatTimer(int t){
 double hrs_raw = t/3600;
 int hrs_whole = t~/3600;
@@ -71,13 +65,28 @@ MyButton(onPressed: _clearStats, icon: const Icon(Icons.cleaning_services_sharp)
 
   @override
   Widget build(BuildContext context) {
+    final leftHandNotifier = Provider.of<LeftHandNotifier>(context);
+    double widthBox = MediaQuery.sizeOf(context).width;
+    double heightBox = MediaQuery.sizeOf(context).height;
     
     return Scaffold(
-      appBar: AppBar(title: Text("Settings")),
-      body: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+      appBar: AppBar(title: Text("Settings"),
+      leading: IconButton(
+        icon: const Icon (Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),),
+      body: 
+      SizedBox(
+        height: heightBox,
+        width: widthBox,
+        child: Stack(
           children: <Widget>[
+            Positioned(
+              top:heightBox/3,
+              left:2*widthBox/5,
+              child:
             Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -100,7 +109,11 @@ MyButton(onPressed: _clearStats, icon: const Icon(Icons.cleaning_services_sharp)
             
             
           ],
-        ),
+        )),
+        Positioned(
+              top:2*heightBox/5,
+              left: (leftHandNotifier.isLeft) ? 34*widthBox/100 : 3*widthBox/5,
+              child:
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -108,12 +121,11 @@ MyButton(onPressed: _clearStats, icon: const Icon(Icons.cleaning_services_sharp)
             
             for (var b in settingsButtons) (b),
             
-        _isLeftHanded ? MyButton(onPressed: _setLeftRight, icon: const Icon(Icons.front_hand)): 
-        MyButton(onPressed: _setLeftRight, icon: const Icon(Icons.back_hand)),
+        LeftHandProvider(),
         ThemeProvider(),
             
           ],
-        )
+        ))
 
           ]),
       ),

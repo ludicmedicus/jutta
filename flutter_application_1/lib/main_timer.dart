@@ -99,7 +99,13 @@ return '$h : $m : $s';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Settings")),
+      appBar: AppBar(title: Text("Settings"),
+      leading: IconButton(
+        icon: const Icon (Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),),
       body: Center(
         child:
       Column(
